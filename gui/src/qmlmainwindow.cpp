@@ -26,6 +26,7 @@ extern "C" {
 #include <QDebug>
 #include <QElapsedTimer>
 #include <QThread>
+#include <QWheelEvent>
 #include <QShortcut>
 #include <QStandardPaths>
 #include <QCoreApplication>
@@ -2758,6 +2759,8 @@ void QmlMainWindow::grabInput()
 {
     setCursor(Qt::ArrowCursor);
     grab_input++;
+    if (mouse_aim)
+        mouse_aim->SetSuspended(true);
     if (session)
         session->BlockInput(grab_input);
 }
@@ -2769,8 +2772,30 @@ void QmlMainWindow::releaseInput()
     grab_input--;
     if (!grab_input && has_video && settings->GetHideCursor())
         setCursor(Qt::BlankCursor);
+    if (mouse_aim)
+        mouse_aim->SetSuspended(grab_input > 0);
     if (session)
         session->BlockInput(grab_input);
+}
+
+void QmlMainWindow::updateMouseAim()
+{
+    if (mouse_aim)
+        mouse_aim->SetSessionRunning(session && has_video);
+}
+
+void QmlMainWindow::showMouseAimStatus(const QString &msg)
+{
+    if (mouse_aim_saved_title.isEmpty())
+        mouse_aim_saved_title = title();
+    setTitle(QStringLiteral("%1 - %2").arg(mouse_aim_saved_title, msg));
+    qInfo().noquote() << msg;
+    QTimer::singleShot(3000, this, [this, msg]() {
+        if (title().endsWith(msg)) {
+            setTitle(mouse_aim_saved_title);
+            mouse_aim_saved_title.clear();
+        }
+    });
 }
 
 void QmlMainWindow::requestOverlayUpdate()
@@ -5157,6 +5182,9 @@ renderer_backend_ready:
     connect(qml_engine, &QQmlEngine::quit, this, &QWindow::close);
 
     backend = new QmlBackend(settings, this);
+    mouse_aim = new MouseAim(this, this);
+    connect(mouse_aim, &MouseAim::StatusMessage, this, &QmlMainWindow::showMouseAimStatus);
+    connect(this, &QmlMainWindow::hasVideoChanged, this, [this]() { updateMouseAim(); });
     stats_overlay_widget = new StatsOverlayWidget(this, backend);
     connect(backend, &QmlBackend::sessionChanged, this, [this, exit_app_on_stream_exit](StreamSession *s) {
         const bool preserve_startup_warmup = s && startup_warmup_preserve_next_session_change;
@@ -5167,6 +5195,10 @@ renderer_backend_ready:
         grab_input = 0;
         if (session)
             session->BlockInput(0);
+        if (session)
+            session->SetMouseAim(mouse_aim);
+        mouse_aim->SetSuspended(false);
+        updateMouseAim();
         // Only drain at session end (teardown): prevents frame_mix use-after-free.
         // At session start draining would visibly freeze the connecting UI, so the
         // queue reset below waits only for a render that is drawing queued frames.
@@ -7709,6 +7741,16 @@ bool QmlMainWindow::event(QEvent *event)
     case QEvent::MouseButtonRelease:
         if (static_cast<QMouseEvent*>(event)->source() != Qt::MouseEventNotSynthesized)
             return true;
+        if (session && !grab_input && mouse_aim && mouse_aim->IsActive()) {
+            QMouseEvent *me = static_cast<QMouseEvent*>(event);
+            if (event->type() == QEvent::MouseMove)
+                mouse_aim->HandleMouseMove(me);
+            else if (event->type() == QEvent::MouseButtonPress)
+                mouse_aim->HandleMousePress(me);
+            else
+                mouse_aim->HandleMouseRelease(me);
+            return true;
+        }
         if (session && !grab_input) {
             if (event->type() == QEvent::MouseMove)
                 session->HandleMouseMoveEvent(static_cast<QMouseEvent*>(event), width(), height());
@@ -7720,7 +7762,17 @@ bool QmlMainWindow::event(QEvent *event)
         }
         QGuiApplication::sendEvent(quick_window, event);
         break;
+    case QEvent::Wheel:
+        if (session && !grab_input && mouse_aim && mouse_aim->HandleWheel(static_cast<QWheelEvent*>(event)))
+            return true;
+        break;
     case QEvent::MouseButtonDblClick:
+        if (mouse_aim && mouse_aim->IsActive()) {
+            // a double click while aiming counts as a second press
+            if (session && !grab_input)
+                mouse_aim->HandleMousePress(static_cast<QMouseEvent*>(event));
+            return true;
+        }
         if(!settings->GetFullscreenDoubleClickEnabled())
             break;
         if (session && !grab_input) {
@@ -7731,9 +7783,18 @@ bool QmlMainWindow::event(QEvent *event)
         }
         break;
     case QEvent::KeyPress:
-        if (handleShortcut(static_cast<QKeyEvent*>(event)))
-            return true;
     case QEvent::KeyRelease:
+        if (session && !grab_input && mouse_aim && static_cast<QKeyEvent*>(event)->spontaneous()) {
+            QKeyEvent *ke = static_cast<QKeyEvent*>(event);
+            // F11 (fullscreen) keeps working, every other key belongs to the game in GTA mode
+            if (mouse_aim->IsActive() && event->type() == QEvent::KeyPress && ke->key() == Qt::Key_F11
+                    && ke->modifiers() == Qt::NoModifier && handleShortcut(ke))
+                return true;
+            if (mouse_aim->HandleKey(ke))
+                return true;
+        }
+        if (event->type() == QEvent::KeyPress && handleShortcut(static_cast<QKeyEvent*>(event)))
+            return true;
         if (session && !grab_input) {
             QKeyEvent *e = static_cast<QKeyEvent*>(event);
             if (!e->spontaneous()) {

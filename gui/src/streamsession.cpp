@@ -898,6 +898,15 @@ void StreamSession::GoHome()
 	chiaki_session_go_home(&session);
 }
 
+void StreamSession::SetMouseAim(MouseAim *aim)
+{
+	if(mouse_aim)
+		disconnect(mouse_aim, nullptr, this, nullptr);
+	mouse_aim = aim;
+	if(mouse_aim)
+		connect(mouse_aim, &MouseAim::StateChanged, this, &StreamSession::SendFeedbackState);
+}
+
 void StreamSession::HandleMousePressEvent(QMouseEvent *event)
 {
 	if(!mouse_touch_enabled)
@@ -1284,6 +1293,11 @@ void StreamSession::DpadSendFeedbackState()
 	chiaki_controller_state_or(&state, &state, &sdeck_state);
 #endif
 	chiaki_controller_state_or(&state, &state, &keyboard_state);
+	if(mouse_aim)
+	{
+		ChiakiControllerState aim_state = mouse_aim->GetState();
+		chiaki_controller_state_or(&state, &state, &aim_state);
+	}
 	chiaki_controller_state_or(&state, &state, &touch_state);
 
 	if(input_block)
@@ -1340,6 +1354,11 @@ void StreamSession::SendFeedbackState()
 	chiaki_controller_state_or(&state, &state, &sdeck_state);
 #endif
 	chiaki_controller_state_or(&state, &state, &keyboard_state);
+	if(mouse_aim)
+	{
+		ChiakiControllerState aim_state = mouse_aim->GetState();
+		chiaki_controller_state_or(&state, &state, &aim_state);
+	}
 	chiaki_controller_state_or(&state, &state, &touch_state);
 
 	if(input_block)

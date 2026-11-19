@@ -31,8 +31,10 @@
 #include "sessionlog.h"
 #include "controllermanager.h"
 #include "settings.h"
+#include "mouseaim.h"
 
 #include <QObject>
+#include <QPointer>
 #include <QImage>
 #include <QMouseEvent>
 #include <QMutex>
@@ -220,6 +222,7 @@ class StreamSession : public QObject
 		bool rumble_haptics_on;
 		float PS_TOUCHPAD_MAX_X, PS_TOUCHPAD_MAX_Y;
 		ChiakiControllerState keyboard_state;
+		QPointer<MouseAim> mouse_aim;
 		ChiakiControllerState touch_state;
 		QMap<int, uint8_t> touch_tracker;
 		int8_t mouse_touch_id;
@@ -378,6 +381,7 @@ class StreamSession : public QObject
 		void DrainMicRingBuffer();
 		void ReadMic(const QByteArray &micdata);
 
+		void SetMouseAim(MouseAim *aim);
 		void BlockInput(bool block) { input_block = block ? 1 : 2; SendFeedbackState(); }
 
 	signals:

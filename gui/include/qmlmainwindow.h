@@ -2,6 +2,7 @@
 
 #include "streamsession.h"
 #include "settings.h"
+#include "mouseaim.h"
 
 #include <QMutex>
 #include <QAtomicInteger>
@@ -326,6 +327,10 @@ private:
 
     QmlBackend *backend = {};
     StreamSession *session = {};
+    MouseAim *mouse_aim = {};
+    QString mouse_aim_saved_title;
+    void updateMouseAim();
+    void showMouseAimStatus(const QString &msg);
     AVBufferRef *vulkan_hw_dev_ctx = nullptr;
     std::atomic<double> queue_depth_average{0.0};
     QAtomicInteger<int> queue_depth_cached = 0;

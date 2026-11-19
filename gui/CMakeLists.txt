@@ -26,6 +26,9 @@ set(SOURCE_FILES
 	src/discoverymanager.cpp
 	include/streamsession.h
 	src/streamsession.cpp
+	include/mouseaimcurve.h
+	include/mouseaim.h
+	src/mouseaim.cpp
 	include/sessionlog.h
 	src/sessionlog.cpp
 	include/settings.h
@@ -116,6 +119,9 @@ if (${Qt6WebEngineQuick_FOUND})
 	target_compile_definitions(chiaki PRIVATE CHIAKI_HAVE_WEBENGINE)
 endif()
 target_link_libraries(chiaki SDL2::SDL2)
+if(WIN32)
+	target_link_libraries(chiaki winmm)
+endif()
 if(CHIAKI_ENABLE_SPEEX)
   target_link_libraries(chiaki PkgConfig::SpeexDSP)
   target_compile_definitions(chiaki PRIVATE CHIAKI_GUI_ENABLE_SPEEX)

@@ -1,10 +1,12 @@
-name: Build chiaki-ng Windows x86_64 (VC)
+name: PS5-Maus Windows Build
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-win_x64:
@@ -184,13 +186,14 @@ jobs:
           cp "${{ github.workspace }}\${{ env.dep_folder }}\bin\shaderc_shared.dll" chiaki-ng-Win
           cp "${{ github.workspace }}\${{ env.dep_folder }}\bin\spirv-cross-c-shared.dll" chiaki-ng-Win
           windeployqt.exe --no-translations --qmldir=gui\src\qml --release chiaki-ng-Win\chiaki.exe
+          cp ANLEITUNG-GTA-MODUS.txt chiaki-ng-Win
 
       - name: Package chiaki-ng
         run: |
           $CHIAKI_VERSION_MAJOR = (Select-String -Path .\CMakeLists.txt -Pattern 'set\(CHIAKI_VERSION_MAJOR ([0-9]+)\)') | %{$_.Matches.Groups[1].value}
           $CHIAKI_VERSION_MINOR = (Select-String -Path .\CMakeLists.txt -Pattern 'set\(CHIAKI_VERSION_MINOR ([0-9]+)\)') | %{$_.Matches.Groups[1].value}
           $CHIAKI_VERSION_PATCH = (Select-String -Path .\CMakeLists.txt -Pattern 'set\(CHIAKI_VERSION_PATCH ([0-9]+)\)') | %{$_.Matches.Groups[1].value}
-          $RELEASE_PACKAGE_FILE = "chiaki-ng-win_x64-VC-portable-$CHIAKI_VERSION_MAJOR.$CHIAKI_VERSION_MINOR.$CHIAKI_VERSION_PATCH-test-build-${{ github.sha }}.zip"
+          $RELEASE_PACKAGE_FILE = "PS5-Maus-Windows-portable.zip"
           Compress-Archive chiaki-ng-Win $RELEASE_PACKAGE_FILE
           $release_filepath = Get-ChildItem $RELEASE_PACKAGE_FILE | %{$_[0].FullName}
           echo "RELEASE_PACKAGE_PATH=$release_filepath" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
@@ -203,16 +206,11 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Compile .ISS to .EXE Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
+      - name: Publish download (GitHub Release)
+        uses: softprops/action-gh-release@v2
         with:
-          path: "scripts/chiaki-ng.iss"
-          options: /O+
-
-      - name: Upload chiaki-ng Artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: chiaki-ng-win_x64-VC-installer.zip
-          path: chiaki-ng-windows-installer.exe
-          if-no-files-found: error
-          retention-days: 7
+          tag_name: neueste-version
+          name: PS5-Maus (neueste Version)
+          body: "Automatisch gebaut aus ${{ github.sha }}. ZIP herunterladen, entpacken, chiaki.exe starten. Anleitung liegt im ZIP."
+          files: ${{ env.RELEASE_PACKAGE_PATH }}
+          make_latest: true

@@ -1,0 +1,73 @@
+PS5-MAUS - GTA mit Maus und Tastatur auf der PS5
+================================================
+
+Basis: chiaki-ng (freier PS5-Remote-Play-Client, Lizenz AGPL-3.0)
+plus eigener "GTA-Modus" fuer Maus + Tastatur.
+
+
+EINRICHTEN (einmalig)
+---------------------
+1. PS5: Einstellungen > System > Remote Play > "Remote Play aktivieren" = AN
+2. PS5: Einstellungen > System > Energiesparen > Im Ruhemodus verfuegbare Funktionen:
+   "Mit dem Internet verbunden bleiben" und "Einschalten der PS5 ueber das Netzwerk" = AN
+3. PS5 und PC am besten per LAN-KABEL an den Router.
+4. ZIP entpacken, chiaki.exe starten.
+5. In chiaki-ng mit dem PSN-Konto anmelden (oder Konto-ID eintragen),
+   dann die PS5 auswaehlen und koppeln:
+   PS5: Einstellungen > System > Remote Play > Geraet verknuepfen -> Code eingeben.
+6. Einstellungen in chiaki-ng: Aufloesung 1080p, 60 FPS, Codec H.265 (HEVC).
+
+
+SPIELEN
+-------
+Sobald das Bild da ist, ist der GTA-Modus automatisch AN:
+Der Mauszeiger verschwindet, die Maus steuert die Kamera.
+
+  F8        GTA-Modus an/aus (aus = Maus wieder frei)
+  F6 / F7   Kamera langsamer / schneller (wird gespeichert)
+  F11       Vollbild
+  Alt+Tab   Fenster wechseln (Maus wird automatisch freigegeben)
+
+Standard-Tasten:
+  W A S D        Laufen                 Maus          Kamera / Zielen
+  Feststelltaste Gehen (langsam)        Linke Maus    R2 (Schiessen / Gas)
+  Shift          X (Sprinten)           Rechte Maus   L2 (Zielen / Bremse)
+  Leertaste      Quadrat (Springen)     Mittlere Maus R3
+  F              Dreieck (Einsteigen)   Mausrad       Steuerkreuz hoch/runter
+  R              Kreis                  Maus-Seitent. Steuerkreuz links/rechts
+  Q              R1 (Deckung)
+  Tab            L1 (Waffenrad)
+  Strg           L3 (Ducken)
+  V              R3
+  E / T / X / G  Steuerkreuz rechts / hoch / runter / links
+  Pfeiltasten    Steuerkreuz
+  M              Touchpad (Karte)
+  Esc            Options (Pause)
+  Enter / Back   X / Kreis (Menues)
+  P              PS-Taste
+
+
+ALLES ANPASSEN
+--------------
+Die Datei gta-modus.ini wird beim ersten Start angelegt unter:
+  %LOCALAPPDATA%\Chiaki\Chiaki\gta-modus.ini
+(Falls nicht dort: im Explorer nach "gta-modus.ini" suchen.)
+Mit dem Editor oeffnen, aendern, speichern, dann im Spiel 2x F8 druecken.
+
+Tipps zum Feintuning:
+  - Kamera zu langsam/schnell      -> F6/F7 oder "empfindlichkeit"
+  - Feines Zielen "klebt"/ruckelt  -> "deadzone" etwas hoeher (0.15 - 0.20)
+  - Kamera dreht bei kleiner Bewegung zu stark -> "deadzone" kleiner
+  - Hoch/runter zu schnell         -> "y_verhaeltnis" z. B. 0.7
+  - Bewegung zittrig               -> "glaettung_ms" z. B. 20
+  - Sehr direkt gewuenscht         -> "glaettung_ms" z. B. 8
+Im Spiel selbst: Zielhilfe nach Wunsch, Kamera-Empfindlichkeit eher hoch,
+Beschleunigung (falls einstellbar) aus.
+
+
+WICHTIG
+-------
+- Das Spiel laeuft weiter auf der PS5. Die Bildqualitaet ist auf 1080p begrenzt
+  (Grenze von Sony Remote Play), und es gibt eine kleine Streaming-Verzoegerung.
+- GTA Online: Maus/Tastatur-Umwandler sind dort nicht erlaubt -> Bann-Risiko.
+  Story-Modus: unproblematisch.
