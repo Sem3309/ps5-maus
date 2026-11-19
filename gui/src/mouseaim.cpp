@@ -463,7 +463,7 @@ void MouseAim::Tick()
 void MouseAim::ApplyTarget(int target, bool down)
 {
 	int &c = target_count[target];
-	c = down ? c + 1 : std::max(0, c - 1);
+	c = down ? c + 1 : (std::max)(0, c - 1);
 }
 
 void MouseAim::InputDown(int code)

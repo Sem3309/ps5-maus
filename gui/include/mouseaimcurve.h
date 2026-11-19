@@ -41,7 +41,7 @@ class MouseAimCurve
 		// Compute stick output at time t_ms.
 		StickOut Compute(double t_ms, const MouseAimParams &p)
 		{
-			const double window = std::max(4.0, p.smoothing_ms);
+			const double window = (std::max)(4.0, p.smoothing_ms);
 			while(!samples.empty() && samples.front().t < t_ms - window)
 				samples.pop_front();
 
@@ -58,7 +58,7 @@ class MouseAimCurve
 			// counts per second
 			const double vx = sx * 1000.0 / window;
 			const double vy = sy * 1000.0 / window * p.y_ratio * (p.invert_y ? -1.0 : 1.0);
-			const double full = std::max(1.0, p.full_speed_counts) / std::max(0.01, p.sensitivity);
+			const double full = (std::max)(1.0, p.full_speed_counts) / (std::max)(0.01, p.sensitivity);
 
 			const double nx = vx / full;
 			const double ny = vy / full;
@@ -67,7 +67,7 @@ class MouseAimCurve
 				return out;
 
 			const double dz = std::clamp(p.deadzone, 0.0, 0.9);
-			const double curved = std::pow(std::min(1.0, mag), std::max(0.1, p.exponent));
+			const double curved = std::pow((std::min)(1.0, mag), (std::max)(0.1, p.exponent));
 			const double outmag = dz + (1.0 - dz) * curved;
 
 			double ox = nx / mag * outmag;
