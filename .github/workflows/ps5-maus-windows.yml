@@ -21,6 +21,7 @@ jobs:
       dep_folder: deps
       libplacebo_tag: v7.387.0
       sdl2_compat_tag: 2.32.74
+      CMAKE_POLICY_VERSION_MINIMUM: "3.5"
 
     defaults:
       run:
